@@ -9,7 +9,7 @@ version = "debug"
 
 #Sets the mysql password for the debug and release builds
 if version == "debug":
-    dbpass = "Niger@X41"
+    dbpass = "test123"
 elif version == "release":
     dpass = ""
 else:
