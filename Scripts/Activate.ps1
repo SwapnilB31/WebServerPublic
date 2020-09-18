@@ -40,7 +40,7 @@ if (! $env:VIRTUAL_ENV_DISABLE_PROMPT) {
     }
 }
 
-# Clear PYTHONHOME
+# Clear PYTHONHOME 
 if (Test-Path env:PYTHONHOME) {
     copy-item env:PYTHONHOME env:_OLD_VIRTUAL_PYTHONHOME
     remove-item env:PYTHONHOME
