@@ -1,0 +1,151 @@
+<html>
+  <head>
+    <title>Network Graph</title>
+    <link rel="stylesheet" href="css/loader.css">
+  </head>
+  <body>
+    <header>
+      <script type="text/javascript" src="js/raphael-min.js"></script>
+      <script type="text/javascript" src="js/graffle.js"></script>
+      <script type="text/javascript" src="js/graph.js"></script>
+      <script src="js/loader.js"></script>
+      <script type="text/javascript">
+
+        var redraw;
+        var height = Math.floor(window.innerHeight * 0.9);
+        var width = Math.floor(window.innerWidth * 0.95);
+        var adj_list;
+
+        /* only do all this when document has finished loading (needed for RaphaelJS */
+        window.onload = function() {
+
+          var g = new Graph();
+
+          /*var adjacency_list = JSON.parse(`{
+          "Administrators": [
+            "AdminDC",
+            "DomainAdmins",
+            "EnterpriseAdmins",
+            "Administrator"
+          ],
+          "Users": [
+            "DomainUsers",
+            "AuthenticatedUsers",
+            "INTERACTIVE"
+          ],
+          "Guests": [
+            "DomainGuests",
+            "Guest"
+          ],
+          "IIS_IUSRS": [
+            "IUSR"
+          ],
+          "GG_Domain_Admin_Group": [
+            "DomainAdmin1",
+            "DomainAdmin2"
+          ],
+          "GG_Windows_Admin_Group": [
+            "WindowsAdmin1",
+            "WindowsAdmin2",
+            "WindowsAdmin3"
+          ],
+          "GG_Application_Admin_Group": [
+            "ApplicationAdmin1",
+            "ApplicationAdmin2",
+            "ApplicationAdmin3"
+          ],
+          "GG_Backup_Admin_Group": [
+            "BackupAdmin1",
+            "BackupAdmin2"
+          ],
+          "GG_Cloud_Admin_Group": [
+            "CloudAdmin1"
+          ],
+          "GG_Database_Admin_Group": [
+            "DatabaseAdmin1"
+          ],
+          "GG_Network_Admin_Group": [
+            "NetworkAdmin1",
+            "Sridhar",
+            "Ashok"
+          ]
+          }`)
+
+          /*g.addEdge("Users", "Domain Users");
+          g.addEdge("Users", "GG_Group_Domain_Admin");
+          g.addEdge("Users", "GG_Group_Network_Admin");
+          g.addEdge("GG_Group_Network_Admin", "Ashok");
+          g.addEdge("GG_Group_Network_Admin", "Auth User");
+          g.addEdge("GG_Group_Domain_Admin", "Sridhar");*/
+
+          
+          createLoader()
+          fetch("/getAdjacencyList")
+          .then(res => res.json())
+          .then(adjacency_list => {
+            destroyLoader()
+            //for(let vertex in adjacency_list)
+            //  g.addEdge("Pr. Domain Controller",vertex)
+            adj_list = adjacency_list
+            for(let vertex in adjacency_list) {
+              for(node of adjacency_list[vertex])
+                g.addEdge(vertex,node)
+            }
+            
+            /* layout the graph using the Spring layout implementation */
+            var layouter = new Graph.Layout.Spring(g);
+            layouter.layout();
+            
+            /* draw the graph using the RaphaelJS draw implementation */
+            var renderer = new Graph.Renderer.Raphael('canvas', g, width, height);
+            renderer.draw();
+
+            redraw = function() {
+              layouter.layout();
+              renderer.draw();
+            };
+
+          })
+          .catch(err => {
+            destroyLoader()
+            console.error(err)
+            alert("Error Fetching Data")
+          })
+          
+        };
+
+      </script>
+      <style>
+        #canvas {
+          box-shadow: 0 0 6px 0 rgba(0,0,0,0.4);
+          margin : 5px 8px;
+          border-radius: 4px;
+          min-height: 90vh;
+          min-width: 95vw;
+        }
+
+        button {
+          all : unset;
+          padding :8px 16px;
+          background-color: #444;
+          color: #fff;
+          border-radius: 5px;
+          margin-left: 8px;
+          margin-top: 7px;
+          cursor: pointer;
+          box-shadow: 1px 0 3px 0 rgba(0,0,0,0.4);
+          transition: background-color 0.6s;
+        }
+
+        button:hover {
+         background-color: #111;
+        }
+      </style>
+    </header>
+
+    <div id="canvas">
+
+    </div>
+    <button id="redraw" onclick="redraw();">Redraw</button>
+  </body>
+</html>

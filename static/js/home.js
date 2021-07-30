@@ -1,3 +1,7 @@
+window.addEventListener('load',() => {
+    showAllADUsers()
+})
+
 function dataFetch(dataObj,callback) {
     var args = arguments;
     var method = dataObj.method;
@@ -32,7 +36,7 @@ function dataFetch(dataObj,callback) {
 
     xhr.onerror = function() {
         destroyLoader();
-        alert("Something went wrong! Please make sure that you are connected NITT Wifi/Intranet and try again!");
+        alert("Something went wrong!");
     };
 
     if(method == "POST" || method == "post") {
@@ -58,9 +62,11 @@ function show(panel) {
     switch(panel) {
         case "ADUser":
             hideAll("box1");
+            showAllADUsers()
             break;
         case "ADAdmin":
             hideAll("box2");
+            showAllADAdmins()
             break;
         case "Statistics":
             showStats();
@@ -72,7 +78,6 @@ function show(panel) {
 }
 
 function showAllADUsers() {
-    stats();
     var dataObj = {
         method : "GET",
         url : "getADUsers",
@@ -96,6 +101,7 @@ function showAllADUsers() {
                     <th>UserPrincipalName</th>
                     <th>Password Expiry</th>
                     <th>Last Login</th>
+                    <th/>
                 </tr>
             </thead>
             <tbody>
@@ -104,6 +110,7 @@ function showAllADUsers() {
             html += `<tr><td>${data[i][0] == 1 ? 'Yes' : 'No'}</td>`;
             for(var j = 1; j < data[i].length; j++)
                 html += `<td>${data[i][j]}</td>`;
+            html+=`<td><button class='btn btn-primary' onclick='showPermissions("${data[i][2]}")'><i class='fa fa-eye'></i> Permissions</button></td>`
             html += `</tr>`;
         }
 
@@ -218,6 +225,70 @@ function showStats() {
     hideAll("box3");
 }
 
+function showPermissions(name) {
+    const modal = document.querySelector(".custom-modal")
+
+    createLoader()
+    fetch(`/getPermissions/${encodeURI(name)}`)
+    .then(res => res.json())
+    .then(permissions => {
+        destroyLoader()
+        if(permissions.length == 0) {
+            document.getElementById('user-name-permission').innerHTML = `<strong>${name}</strong>`
+            document.getElementById('permissions-div').innerHTML = `<strong><span style='color : crimson'>Access Denied! Couldn't fetch permissions for user ${name}</span></strong>`
+            modal.style.display = "block";
+            return
+        }
+        let html = `
+        <table class='table table-striped table-hover' id='permissions-table'>
+            <thead>
+                <tr>
+                    <th>ActiveDirectoryRights</th>
+                    <th>InheritanceType</th>
+                    <th>ObjectType</th>
+                    <th>InheritedObjectType</th>
+                    <th>ObjectFlags</th>
+                    <th>AccessControlType</th>
+                    <th>IdentityReference</th>
+                    <th>IsInherited</th>
+                    <th>InheritanceFlags</th>
+                    <th>PropagationFlags</th>
+                </tr>
+            </thead>
+            <tbody>
+        `
+        for(let i = 0; i < permissions.length; i++) {
+            let currObj = permissions[i]
+            html += `
+                <tr>
+                    <td>${currObj.ActiveDirectoryRights}</td>
+                    <td>${currObj.InheritanceType}</td>
+                    <td>${currObj.ObjectType}</td>
+                    <td>${currObj.InheritedObjectType}</td>
+                    <td>${currObj.ObjectFlags}</td>
+                    <td>${currObj.AccessControlType}</td>
+                    <td>${currObj.IdentityReference}</td>
+                    <td>${currObj.IsInherited}</td>
+                    <td>${currObj.InheritanceFlags}</td>
+                    <td>${currObj.PropagationFlags}</td>
+                </tr>
+            `
+        }
+        html += `
+            </tbody>
+        </table>
+        `
+        document.getElementById('user-name-permission').innerHTML = `<strong>${name}</strong>`
+        document.getElementById('permissions-div').innerHTML = html
+        modal.style.display = "block";
+    })
+    .catch(err => {
+        console.warn(err)
+        destroyLoader()
+        alert("Something went wrong :"+err.message)
+    })
+}
+
 function stats() {
     var dataObj = {
         method : "GET",
@@ -230,7 +301,15 @@ function stats() {
         <table class='table table-striped table-hover'>
             <tr>
                 <th>Average Group Membership</th>
-                <td>${data["avg_group"]}</td>
+                <td id='avg_group_membership'>calculating...</td>
+            </tr>
+            <tr>
+                <th>Vulnerability Index</th>
+                <td id='vulnerability_index'>calculating...</td>
+            </tr>
+            <tr>
+                <th>Maximum Degree of Nesting</th>
+                <td id='max_degree_nesting'>calculating...</td>
             </tr>
             <tr>
                 <th>Number of Accounts with expired password</th>
@@ -247,9 +326,27 @@ function stats() {
         </table>
         `;
         document.getElementById("aduser-stats").innerHTML = html;
+        createLoader()
+        fetch("/getNestingInfo")
+        .then(res => res.json())
+        .then(data => {
+            destroyLoader()
+            avg_group_membership = parseInt(data.total) / parseInt(data.num_groups)
+            vulnerability_index = (parseInt(data.num_groups) / avg_group_membership)
+
+            document.getElementById('avg_group_membership').innerText = avg_group_membership
+            document.getElementById('vulnerability_index').innerText = vulnerability_index
+            document.getElementById('max_degree_nesting').innerText = data.max
+            //max_degree_nesting
+        })
+        .catch(err => {
+            destroyLoader()
+        })
         drawPieChart(data);
     });
 }
+
+/** Draw Pi Charts */
 
 function drawPieChart(data) {
     /**
@@ -336,4 +433,14 @@ function drawPieChart(data) {
 
     
     pieChart1.Doughnut(PieData1, pieOptions);
+}
+
+/** UI Utility Functions */
+function closeModal(button) {
+    var modal = button.parentElement.parentElement.parentElement.parentElement;
+    modal.setAttribute("class","modal fade");
+    modal.style.display = "none";
+    var errors = document.getElementsByClassName("err");
+    for(var i in errors)
+        errors[i].innerHTML = "";
 }
