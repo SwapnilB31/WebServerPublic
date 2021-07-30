@@ -8,9 +8,19 @@ from config import get_config
 
 config_obj = get_config()
 
+<<<<<<< HEAD
 version = config_obj["version"]
 host_url = config_obj[version]["host"] + "/"
 dbpass = config_obj[version]["dbpass"]
+=======
+#Sets the mysql password for the debug and release builds
+if version == "debug":
+    dbpass = "test123"
+elif version == "release":
+    dpass = ""
+else:
+    dbpass = ""
+>>>>>>> 93a74e0334a55f105ecdd1bbbaa2a1f94f9079d0
 
 # fetches the list of AD Users from the API in the Windows Server and inserts/synchronizes the data to be consistent
 # with the AD state
@@ -281,5 +291,9 @@ def randomizePasswordExpiry():
     cursor.close()
     return True
 
+<<<<<<< HEAD
 
 # print(randomizeLastLogin() and randomizePasswordExpiry())
+=======
+#print(randomizeLastLogin() and randomizePasswordExpiry())
+>>>>>>> 93a74e0334a55f105ecdd1bbbaa2a1f94f9079d0

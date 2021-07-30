@@ -10,12 +10,22 @@ import urllib.error as err
 
 g = Graph()
 
+<<<<<<< HEAD
 config_obj = get_config()
 
 # Sets the mysql password for the debug and release builds
 version = config_obj["version"]
 host = config_obj[version]["host"]
 dbpass = config_obj[version]["dbpass"]
+=======
+#Sets the mysql password for the debug and release builds
+if version == "debug":
+    dbpass = "test123"
+elif version == "release":
+    dpass = ""
+else:
+    dbpass = ""
+>>>>>>> 93a74e0334a55f105ecdd1bbbaa2a1f94f9079d0
 
 app = Flask(__name__)
 app.secret_key = "#12_678_1_bhc"
@@ -206,4 +216,8 @@ def get_permissions(user_name):
 
 # starts the server on port 80 and accepts requests from all requesting IP Addreses
 if __name__ == "__main__":
+<<<<<<< HEAD
     app.run(host="0.0.0.0", port=80)
+=======
+    app.run(host="0.0.0.0",port=80)
+>>>>>>> 93a74e0334a55f105ecdd1bbbaa2a1f94f9079d0
